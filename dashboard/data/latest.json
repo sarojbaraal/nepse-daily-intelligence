@@ -1,0 +1,24 @@
+{
+  "updated_label": "Waiting for first verified daily snapshot",
+  "market": {
+    "nepse": null,
+    "change_pct": null,
+    "turnover": null,
+    "breadth": null,
+    "note": "यो dashboard अनुमानित वा stale price देखाउँदैन। verified daily market data जोडिएपछि मात्र metrics भरिनेछन्।"
+  },
+  "sectors": [],
+  "setups": [],
+  "scenarios": {
+    "base": {"probability": null},
+    "bull": {"probability": null},
+    "bear": {"probability": null},
+    "note": "Scenario probabilities दैनिक briefing को evidence बाट भरिनेछन्।"
+  },
+  "review": {
+    "score": null,
+    "reviewed": 0,
+    "score_label": "No reviewed predictions yet"
+  },
+  "counterpoint": "पहिलो verified briefing नआएसम्म कुनै trade thesis लाई dashboard मा प्रस्तुत गरिने छैन।"
+}
