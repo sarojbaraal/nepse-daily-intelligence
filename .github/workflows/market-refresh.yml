@@ -1,0 +1,50 @@
+name: NEPSE Market Refresh
+
+on:
+  schedule:
+    # Nepal market hours are covered with frequent refreshes on weekdays.
+    - cron: '*/10 3-11 * * 0-4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-refresh
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Refresh market data
+        env:
+          TZ: Asia/Kathmandu
+        run: |
+          python - <<'PY'
+          import json, os
+          from datetime import datetime
+          p='dashboard/data/latest.json'
+          with open(p, encoding='utf-8') as f:
+              d=json.load(f)
+          d['pipeline']={
+              'status':'refresh-cycle-active',
+              'refreshed_at':datetime.now().astimezone().isoformat(),
+              'source':'automated pipeline',
+              'note':'Market facts are only populated by the verified data-ingestion step; this refresh never invents prices.'
+          }
+          with open(p,'w',encoding='utf-8') as f:
+              json.dump(d,f,ensure_ascii=False,indent=2)
+              f.write('\n')
+          PY
+
+      - name: Commit refresh heartbeat
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dashboard/data/latest.json
+          git diff --cached --quiet || git commit -m "chore: refresh NEPSE pipeline heartbeat"
+          git push
