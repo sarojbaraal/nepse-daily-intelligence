@@ -1,0 +1,10 @@
+{
+  "date":"2026-09-09",
+  "horizon":"1 week",
+  "setups":[
+    {"symbol":"RSML","entry":"2940-3000","target":[3045,3097],"invalidation":2889,"confidence":68,"status":"watchlist-confirmation-required"},
+    {"symbol":"NRN","entry":"1390-1408","target":[1422,1439],"invalidation":1376,"confidence":62,"status":"watchlist-confirmation-required"},
+    {"symbol":"SHIVM","entry":"655-668","target":[674,686],"invalidation":648,"confidence":64,"status":"watchlist-confirmation-required"}
+  ],
+  "method":"Technical watchlist based on verified 2026-09-09 market data. Not a guaranteed profit forecast."
+}
