@@ -1,36 +1,27 @@
 <!doctype html>
 <html lang="ne">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NEPSE Daily Intelligence</title>
-  <style>
-    :root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}
-    body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#18233b,#080b12 55%);color:#eef2ff}
-    main{max-width:1100px;margin:auto;padding:48px 24px}
-    .hero{padding:32px;border:1px solid #ffffff18;border-radius:24px;background:#ffffff09;backdrop-filter:blur(18px);box-shadow:0 20px 70px #0008}
-    .eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:.75rem;opacity:.65}
-    h1{font-size:clamp(2rem,5vw,4rem);margin:.25rem 0 1rem;line-height:1}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:20px}
-    .card{padding:22px;border-radius:18px;border:1px solid #ffffff14;background:#ffffff08}
-    .label{font-size:.8rem;opacity:.6}.value{font-size:1.5rem;font-weight:700;margin-top:6px}
-    .note{margin-top:28px;opacity:.7;line-height:1.6}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEPSE Intelligence Terminal</title>
+<meta name="description" content="Personal NEPSE market intelligence dashboard — facts, signals, probabilities, risk and review.">
+<link rel="stylesheet" href="./assets/css/app.css">
 </head>
 <body>
-<main>
-  <section class="hero">
-    <div class="eyebrow">Personal Market Intelligence</div>
-    <h1>NEPSE Daily Intelligence</h1>
-    <p>तथ्य → संकेत → सम्भावना → जोखिम → समीक्षा</p>
-    <div class="grid">
-      <div class="card"><div class="label">Market Pulse</div><div class="value">Daily update</div></div>
-      <div class="card"><div class="label">1-Week Setups</div><div class="value">Evidence-based</div></div>
-      <div class="card"><div class="label">Prediction Review</div><div class="value">Expected vs Actual</div></div>
-      <div class="card"><div class="label">Next Move</div><div class="value">Scenario analysis</div></div>
-    </div>
-    <p class="note">यो dashboard दैनिक briefing का लागि visual shell हो। वास्तविक market data र briefing files repository मा क्रमशः जोडिन्छन्।</p>
-  </section>
+<header class="topbar"><div class="wrap nav"><a class="brand" href="#top"><span class="logo">N</span><span>NEPSE Intelligence</span></a><nav class="navlinks"><a href="#market">Market</a><a href="#setups">Setups</a><a href="#scenarios">Scenarios</a><a href="#review">Review</a></nav><span class="muted">v1 • private terminal</span></div></header>
+<main id="top" class="wrap">
+<section class="hero"><div><div class="eyebrow">Personal Market Intelligence</div><h1>तथ्य → संकेत → सम्भावना → जोखिम → समीक्षा</h1><p>एक हप्ताको tactical view, स्पष्ट invalidation र आफ्नै prediction history सहित।</p></div><div class="status"><small>DATA STATUS</small><strong><span class="dot"></span><span id="updated" class="loading">Loading…</span></strong></div></section>
+<section id="market" class="grid">
+<div class="card metric"><div class="label">NEPSE Index</div><div id="index" class="num">—</div><div id="change" class="muted">—</div></div>
+<div class="card metric"><div class="label">Turnover</div><div id="turnover" class="num">—</div><div class="muted">Daily market value</div></div>
+<div class="card metric"><div class="label">Breadth</div><div id="breadth" class="num">—</div><div class="muted">Advancers / decliners</div></div>
+<div class="card metric"><div class="label">Market Pulse</div><div class="num">Evidence</div><div class="muted">Facts before forecasts</div></div>
+</section>
+<section class="section grid"><div class="card wide"><div class="sectionhead"><h2>Market read</h2><span>What matters now</span></div><p id="marketNote" class="callout">Loading verified market interpretation…</p><div class="sectionhead" style="margin-top:22px"><h2>Sector heatmap</h2><span>Relative daily movement</span></div><div id="sectors" class="heatmap"><div class="empty">Loading…</div></div></div>
+<div class="card side"><div class="sectionhead"><h2>Risk lens</h2><span>Before entry</span></div><div class="callout">Trade idea बिना invalidation अधुरो हुन्छ। Liquidity, market regime र failure condition जाँच गरिनेछ।</div><div class="callout">Confidence ≠ probability of profit. Evidence बलियो हुनु र trade सफल हुनु एउटै कुरा होइन।</div></div></section>
+<section id="setups" class="section grid"><div class="card wide"><div class="sectionhead"><h2>1-Week Swing Setups</h2><span>Entry → Target → Invalidation</span></div><div id="setups" class="setups"><div class="empty">Loading verified setups…</div></div></div>
+<div class="card side"><div class="sectionhead"><h2>What may happen next?</h2><span>Scenario model</span></div><div id="scenarios" class="scenario"><div class="row"><b>Base</b><div class="bar"><i style="--w:0%"></i></div><span>—</span></div><div class="row"><b>Bull</b><div class="bar"><i style="--w:0%"></i></div><span>—</span></div><div class="row"><b>Bear</b><div class="bar"><i style="--w:0%"></i></div><span>—</span></div></div><p id="scenarioNote" class="muted" style="margin-top:14px">Loading…</p></div></section>
+<section id="review" class="section grid"><div class="card wide"><div class="sectionhead"><h2>Prediction Scorecard</h2><span>Expected vs actual</span></div><div id="review" class="review"><div class="empty">Loading review…</div></div></div><div class="card side"><div class="sectionhead"><h2>Critical counterpoint</h2><span>Devil's advocate</span></div><p id="counterpoint" class="callout">Loading…</p></div></section>
+<footer class="footer">Research & decision-support only. Verify live prices, disclosures, liquidity and your own risk limits before trading. Historical prediction results are tracked without rewriting the original forecast.</footer>
 </main>
-</body>
-</html>
+<script src="./assets/js/app.js"></script>
+</body></html>
