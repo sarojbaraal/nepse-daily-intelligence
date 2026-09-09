@@ -2,8 +2,8 @@ name: NEPSE Market Refresh
 
 on:
   schedule:
-    # Nepal market hours are covered with frequent refreshes on weekdays.
-    - cron: '*/10 3-11 * * 0-4'
+    # GitHub Actions supports a minimum scheduled interval of 5 minutes.
+    - cron: '*/5 3-11 * * 0-4'
   workflow_dispatch:
 
 permissions:
@@ -20,31 +20,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Refresh market data
-        env:
-          TZ: Asia/Kathmandu
-        run: |
-          python - <<'PY'
-          import json, os
-          from datetime import datetime
-          p='dashboard/data/latest.json'
-          with open(p, encoding='utf-8') as f:
-              d=json.load(f)
-          d['pipeline']={
-              'status':'refresh-cycle-active',
-              'refreshed_at':datetime.now().astimezone().isoformat(),
-              'source':'automated pipeline',
-              'note':'Market facts are only populated by the verified data-ingestion step; this refresh never invents prices.'
-          }
-          with open(p,'w',encoding='utf-8') as f:
-              json.dump(d,f,ensure_ascii=False,indent=2)
-              f.write('\n')
-          PY
+      - name: Install Python dependencies
+        run: python -m pip install --disable-pip-version-check requests
 
-      - name: Commit refresh heartbeat
+      - name: Fetch and normalize NEPSE data
+        run: python scripts/refresh_market.py
+
+      - name: Commit updated market snapshot
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dashboard/data/latest.json
-          git diff --cached --quiet || git commit -m "chore: refresh NEPSE pipeline heartbeat"
+          git add dashboard/data/latest.json market-data/auto
+          git diff --cached --quiet || git commit -m "chore: refresh automated NEPSE market data"
           git push
