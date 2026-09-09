@@ -1,0 +1,11 @@
+{
+  "date":"2026-09-09",
+  "source_notes":["ShareSansar market summary","OnlineKhabar market report","Merolagani market report"],
+  "nepse":{"close":2545.40,"change_points":-15.43,"change_pct":-0.60,"open":2577.22,"high":2578.43,"low":2543.22},
+  "turnover":4198921039.07,
+  "traded_shares":10965542,
+  "transactions":50804,
+  "breadth":{"up":74,"down":193,"unchanged":11},
+  "market_cap":4378438050000,
+  "sector_change_pct":{"Banking":-0.15,"Development Bank":-2.37,"Finance":-2.08,"Hotels & Tourism":-1.38,"Hydropower":-0.49,"Investment":-0.82,"Life Insurance":-0.20,"Manufacturing":-0.28,"Microfinance":-0.27,"Non-Life Insurance":-1.57,"Others":-0.49,"Trading":-1.56}
+}
