@@ -2,6 +2,12 @@
 
 > Personalized daily market intelligence for Nepal's stock market — built around evidence, probability, and disciplined one-week swing-trade thinking.
 
+## 🌐 Live dashboard
+
+**GitHub Pages:** https://sarojbaraal.github.io/nepse-daily-intelligence/
+
+The dashboard is a static, data-driven terminal. Verified market snapshots are committed to `dashboard/data/latest.json`; every commit to `main` triggers GitHub Pages deployment.
+
 ## 🎯 Purpose
 
 This repository is the long-term memory and research log for the daily NEPSE briefing. It is designed to answer four questions every trading day:
@@ -31,6 +37,24 @@ This repository is the long-term memory and research log for the daily NEPSE bri
 ├── watchlist/             # Persistent watchlist and setup status
 ├── strategy/              # Trading framework and scoring rules
 └── dashboard/             # Visual HTML dashboard
+```
+
+## 🔄 Daily operating model
+
+```text
+Verified market sources
+        ↓
+Market facts + sector data
+        ↓
+Technical / fundamental interpretation
+        ↓
+1-week setups + invalidation
+        ↓
+Base / Bull / Bear scenarios
+        ↓
+Dashboard snapshot
+        ↓
+Later: actual-vs-prediction review
 ```
 
 ## 📈 Setup scoring
