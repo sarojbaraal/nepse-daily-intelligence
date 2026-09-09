@@ -1,24 +1,74 @@
 {
-  "updated_label": "Waiting for first verified daily snapshot",
+  "updated_label": "2026-09-09 | Market close | Verified snapshot",
   "market": {
-    "nepse": null,
-    "change_pct": null,
-    "turnover": null,
-    "breadth": null,
-    "note": "यो dashboard अनुमानित वा stale price देखाउँदैन। verified daily market data जोडिएपछि मात्र metrics भरिनेछन्।"
+    "nepse": 2545.40,
+    "change_pct": -0.60,
+    "turnover": 4198921039.07,
+    "breadth": {"up": 74, "down": 193, "unchanged": 11},
+    "note": "NEPSE fell 15.43 points after four consecutive advancing sessions. Turnover remained above Rs 4.19bn, so the decline came with active participation."
   },
-  "sectors": [],
-  "setups": [],
+  "sectors": [
+    {"name":"Banking","change_pct":-0.15},
+    {"name":"Development Bank","change_pct":-2.37},
+    {"name":"Finance","change_pct":-2.08},
+    {"name":"Hotels & Tourism","change_pct":-1.38},
+    {"name":"Hydropower","change_pct":-0.49},
+    {"name":"Investment","change_pct":-0.82},
+    {"name":"Life Insurance","change_pct":-0.20},
+    {"name":"Manufacturing","change_pct":-0.28},
+    {"name":"Microfinance","change_pct":-0.27},
+    {"name":"Non-Life Insurance","change_pct":-1.57},
+    {"name":"Others","change_pct":-0.49},
+    {"name":"Trading","change_pct":-1.56}
+  ],
+  "setups": [
+    {
+      "symbol":"RSML",
+      "name":"Reliance Spinning Mills",
+      "entry":"2,940–3,000",
+      "target":"3,045 / 3,097",
+      "invalidation":"< 2,889",
+      "confidence":68,
+      "evidence":"High turnover leader; LTP 2,993; MA5 and MA20 bullish; pivot 2,993 with R1 3,045 and R2 3,097.",
+      "counterpoint":"Price remains below the 120/180-day averages, and today's close is near resistance. Breakout confirmation matters.",
+      "risk":"Medium-High",
+      "status":"Watchlist — confirmation required"
+    },
+    {
+      "symbol":"NRN",
+      "name":"NRN Infrastructure & Development",
+      "entry":"1,390–1,408",
+      "target":"1,422 / 1,439",
+      "invalidation":"< 1,376",
+      "confidence":62,
+      "evidence":"High turnover; LTP 1,405; MA5 and MA20 bullish; price holding above S1 1,391.",
+      "counterpoint":"Still below MA180 and therefore not a clean higher-timeframe trend reversal.",
+      "risk":"Medium",
+      "status":"Watchlist — confirmation required"
+    },
+    {
+      "symbol":"SHIVM",
+      "name":"Shivam Cements",
+      "entry":"655–668",
+      "target":"674 / 686",
+      "invalidation":"< 648",
+      "confidence":64,
+      "evidence":"High turnover; LTP 662.60; MA5, MA20 and MA180 remain bullish; price is close to pivot 667.",
+      "counterpoint":"Manufacturing sector was down 0.28% and price is still below MA120; failure around 667–674 weakens the setup.",
+      "risk":"Medium",
+      "status":"Watchlist — confirmation required"
+    }
+  ],
   "scenarios": {
-    "base": {"probability": null},
-    "bull": {"probability": null},
-    "bear": {"probability": null},
-    "note": "Scenario probabilities दैनिक briefing को evidence बाट भरिनेछन्।"
+    "base": {"probability":50,"label":"Range / selective recovery","detail":"NEPSE holds roughly 2,543–2,500 while buyers selectively defend liquid leaders."},
+    "bull": {"probability":30,"label":"Reclaim 2,560+","detail":"A quick reclaim of 2,560 followed by improving breadth would restore the short-term bullish structure."},
+    "bear": {"probability":20,"label":"Breakdown below 2,543","detail":"A decisive break of today's low with weak breadth could open a deeper pullback."},
+    "note":"Probabilities are analytical estimates, not guaranteed outcomes. Reassess after each session."
   },
   "review": {
     "score": null,
     "reviewed": 0,
-    "score_label": "No reviewed predictions yet"
+    "score_label":"First live snapshot — prediction review starts from this date"
   },
-  "counterpoint": "पहिलो verified briefing नआएसम्म कुनै trade thesis लाई dashboard मा प्रस्तुत गरिने छैन।"
+  "counterpoint":"आजको मुख्य warning: index -0.60% मात्र भए पनि breadth निकै कमजोर (74 up vs 193 down) र सबै 13 sub-groups घटेका छन्। Turnover बढेको अवस्थामा यस्तो breadth लाई केवल 'profit booking' भनेर dismiss गर्नु जोखिमपूर्ण हुन्छ।"
 }
