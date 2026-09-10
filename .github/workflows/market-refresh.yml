@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write
 
+env:
+  PARSE_API_KEY: ${{ secrets.PARSE_API_KEY }}
+
 concurrency:
   group: market-refresh
   cancel-in-progress: true
