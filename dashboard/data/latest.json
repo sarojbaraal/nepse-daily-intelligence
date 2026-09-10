@@ -1,8 +1,8 @@
 {
-  "updated_label": "2026-09-10 07:50:32 UTC",
+  "updated_label": "2026-09-10 12:23:31 UTC",
   "market": {
-    "nepse": 2560.84,
-    "change_pct": -0.6,
+    "nepse": 2545.41,
+    "change_pct": -0.54,
     "turnover": 0,
     "breadth": {
       "up": 0,
@@ -16,10 +16,10 @@
       "https://api.parse.bot/scraper/200a3fbe-2c84-436d-8f67-6c08621de86e/get_market_summary",
       "https://api.parse.bot/scraper/200a3fbe-2c84-436d-8f67-6c08621de86e/get_today_prices"
     ],
-    "as_of": "2026-09-10T07:50:32.021203+00:00",
-    "point_change": -15.43,
-    "high": 2578.4335,
-    "low": 2543.2284
+    "as_of": "2026-09-10T12:23:31.165560+00:00",
+    "point_change": -13.85,
+    "high": 2546.1001,
+    "low": 2525.6909
   },
   "sectors": [
     {
@@ -145,79 +145,79 @@
         "id": 57,
         "auditId": null,
         "exchangeIndexId": null,
-        "generatedTime": "2026-09-09T15:20:26.68",
+        "generatedTime": "2026-09-10T15:17:26.85",
         "index": "Sensitive Index",
-        "close": 453.97,
-        "high": 460.27,
-        "low": 451.5696,
-        "previousClose": 452.3474,
-        "change": -1.61,
-        "perChange": -0.35,
+        "close": 452.35,
+        "high": 452.7488,
+        "low": 449.1606,
+        "previousClose": 449.9376,
+        "change": -2.4,
+        "perChange": -0.53,
         "fiftyTwoWeekHigh": 507.0,
         "fiftyTwoWeekLow": 435.29,
-        "currentValue": 452.34
+        "currentValue": 449.93
       },
       {
         "id": 58,
         "auditId": null,
         "exchangeIndexId": null,
-        "generatedTime": "2026-09-09T15:20:26.68",
+        "generatedTime": "2026-09-10T15:17:26.85",
         "index": "NEPSE Index",
-        "close": 2560.84,
-        "high": 2578.4335,
-        "low": 2543.2284,
-        "previousClose": 2545.4081,
-        "change": -15.43,
-        "perChange": -0.6,
+        "close": 2545.41,
+        "high": 2546.1001,
+        "low": 2525.6909,
+        "previousClose": 2531.5517,
+        "change": -13.85,
+        "perChange": -0.54,
         "fiftyTwoWeekHigh": 2960.4,
         "fiftyTwoWeekLow": 2487.18,
-        "currentValue": 2545.4
+        "currentValue": 2531.55
       },
       {
         "id": 62,
         "auditId": null,
         "exchangeIndexId": null,
-        "generatedTime": "2026-09-09T15:20:26.683",
+        "generatedTime": "2026-09-10T15:17:26.85",
         "index": "Float Index",
-        "close": 175.68,
-        "high": 176.8886,
-        "low": 174.366,
-        "previousClose": 174.6595,
-        "change": -1.01,
-        "perChange": -0.58,
+        "close": 174.66,
+        "high": 174.6418,
+        "low": 173.3492,
+        "previousClose": 173.8221,
+        "change": -0.83,
+        "perChange": -0.47,
         "fiftyTwoWeekHigh": 204.21,
         "fiftyTwoWeekLow": 170.58,
-        "currentValue": 174.65
+        "currentValue": 173.82
       },
       {
         "id": 63,
         "auditId": null,
         "exchangeIndexId": null,
-        "generatedTime": "2026-09-09T15:20:26.683",
+        "generatedTime": "2026-09-10T15:17:26.85",
         "index": "Sensitive Float Index",
-        "close": 153.26,
-        "high": 155.0988,
-        "low": 152.2951,
-        "previousClose": 152.5934,
-        "change": -0.66,
-        "perChange": -0.43,
+        "close": 152.59,
+        "high": 152.7574,
+        "low": 151.4929,
+        "previousClose": 151.7853,
+        "change": -0.8,
+        "perChange": -0.52,
         "fiftyTwoWeekHigh": 173.41,
         "fiftyTwoWeekLow": 147.61,
-        "currentValue": 152.59
+        "currentValue": 151.78
       }
     ],
     "summary": {
-      "totalturnoverrs:": 4198921039.07,
-      "totaltradedshares": 10965542.0,
-      "totaltransactions": 50804.0,
-      "totalscripstraded": 352.0,
-      "totalmarketcapitalizationrs:": 4378438183235.1,
-      "totalfloatmarketcapitalizationrs:": 1476887551147.0
+      "totalturnoverrs:": 4000971898.77,
+      "totaltradedshares": 10588653.0,
+      "totaltransactions": 44198.0,
+      "totalscripstraded": 341.0,
+      "totalmarketcapitalizationrs:": 4354603181630.5,
+      "totalfloatmarketcapitalizationrs:": 1469806719426.3
     }
   },
   "pipeline": {
     "status": "live-feed-connected",
-    "refreshed_at": "2026-09-10T07:50:32.021203+00:00",
+    "refreshed_at": "2026-09-10T12:23:31.165560+00:00",
     "interval": "5 minutes (GitHub Actions); upstream freshness depends on source",
     "market_open": false,
     "sources": {
