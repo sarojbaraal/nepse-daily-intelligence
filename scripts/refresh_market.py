@@ -5,8 +5,6 @@ from pathlib import Path
 
 import requests
 
-# Parse's managed wrapper over nepalstock.com.np.
-# The API is independent of NEPSE; keep YONEPSE as a per-endpoint fallback.
 PARSE_BASE = "https://api.parse.bot/scraper/200a3fbe-2c84-436d-8f67-6c08621de86e"
 YONEPSE_BASE = "https://shubhamnpk.github.io/yonepse/data/market"
 
@@ -53,19 +51,33 @@ def yonepse_get(name):
     return get_json(YONEPSE_ENDPOINTS[name])
 
 
-def fetch_with_fallback(name, *, parse=True, fallback=True):
+def fetch_with_fallback(name):
     errors = []
-    if parse:
-        try:
-            return parse_get(name), "Parse NEPSE API"
-        except Exception as exc:
-            errors.append(f"Parse: {exc}")
-    if fallback and name in YONEPSE_ENDPOINTS:
+    try:
+        return parse_get(name), "Parse NEPSE API"
+    except Exception as exc:
+        errors.append(f"Parse: {exc}")
+    if name in YONEPSE_ENDPOINTS:
         try:
             return yonepse_get(name), "YONEPSE fallback"
         except Exception as exc:
             errors.append(f"YONEPSE: {exc}")
     raise RuntimeError(f"{name} unavailable; {' | '.join(errors)}")
+
+
+def fetch_prices_with_fallback():
+    errors = []
+    try:
+        return parse_get("prices"), "Parse NEPSE API"
+    except Exception as exc:
+        errors.append(f"Parse: {exc}")
+    # YONEPSE does not expose the same all-securities price endpoint, so use
+    # its top-stocks snapshot as a degraded fallback rather than invent data.
+    try:
+        return yonepse_get("top"), "YONEPSE fallback (top stocks)"
+    except Exception as exc:
+        errors.append(f"YONEPSE: {exc}")
+    raise RuntimeError(f"prices unavailable; {' | '.join(errors)}")
 
 
 def unwrap(payload):
@@ -79,7 +91,7 @@ def as_list(payload):
     if isinstance(value, list):
         return value
     if isinstance(value, dict):
-        for key in ("items", "prices", "data", "content", "results", "stocks"):
+        for key in ("items", "prices", "data", "content", "results", "stocks", "topStocks"):
             if isinstance(value.get(key), list):
                 return value[key]
     return []
@@ -115,10 +127,6 @@ def find_number(obj, keys):
         return None
 
 
-def first_number(item, keys):
-    return find_number(item, keys)
-
-
 def normalize_index(payload):
     items = as_list(payload)
     nepse_item = next(
@@ -126,17 +134,16 @@ def normalize_index(payload):
         items[0] if items else {},
     )
     return {
-        "nepse": first_number(nepse_item, ["currentValue", "current_value", "close", "closingIndex"]),
-        "change_pct": first_number(nepse_item, ["perChange", "percentageChange", "changePercent", "change_pct"]),
-        "point_change": first_number(nepse_item, ["change", "pointChange"]),
-        "high": first_number(nepse_item, ["high", "highIndex"]),
-        "low": first_number(nepse_item, ["low", "lowIndex"]),
-        "previous_close": first_number(nepse_item, ["previousClose", "previous_close"]),
+        "nepse": find_number(nepse_item, ["currentValue", "current_value", "close", "closingIndex"]),
+        "change_pct": find_number(nepse_item, ["perChange", "percentageChange", "changePercent", "change_pct"]),
+        "point_change": find_number(nepse_item, ["change", "pointChange"]),
+        "high": find_number(nepse_item, ["high", "highIndex"]),
+        "low": find_number(nepse_item, ["low", "lowIndex"]),
+        "previous_close": find_number(nepse_item, ["previousClose", "previous_close"]),
     }
 
 
 def normalize_summary(payload):
-    # Parse returns detail/value pairs; YONEPSE may use a different shape.
     metrics = {}
     value = unwrap(payload)
     if isinstance(value, dict):
@@ -173,14 +180,14 @@ def normalize_prices(payload):
         rows.append(
             {
                 "symbol": str(symbol),
-                "ltp": first_number(item, ["lastTradedPrice", "ltp", "closePrice", "close"]),
-                "change_pct": first_number(item, ["percentageChange", "perChange", "changePercent"]),
-                "volume": first_number(item, ["totalTradeQuantity", "volume", "tradedQuantity"]),
-                "turnover": first_number(item, ["turnover", "totalTradeValue", "tradedValue"]),
-                "open": first_number(item, ["openPrice", "open"]),
-                "high": first_number(item, ["highPrice", "high"]),
-                "low": first_number(item, ["lowPrice", "low"]),
-                "previous_close": first_number(item, ["previousClose", "previous_close"]),
+                "ltp": find_number(item, ["lastTradedPrice", "ltp", "closePrice", "close"]),
+                "change_pct": find_number(item, ["percentageChange", "perChange", "changePercent"]),
+                "volume": find_number(item, ["totalTradeQuantity", "volume", "tradedQuantity"]),
+                "turnover": find_number(item, ["turnover", "totalTradeValue", "tradedValue"]),
+                "open": find_number(item, ["openPrice", "open"]),
+                "high": find_number(item, ["highPrice", "high"]),
+                "low": find_number(item, ["lowPrice", "low"]),
+                "previous_close": find_number(item, ["previousClose", "previous_close"]),
             }
         )
     return rows
@@ -192,7 +199,7 @@ def normalize_sectors(payload):
         if not isinstance(item, dict):
             continue
         name = find_value(item, ["sector", "sectorName", "name", "index"])
-        change = first_number(item, ["percentageChange", "perChange", "changePercent", "change_pct"])
+        change = find_number(item, ["percentageChange", "perChange", "changePercent", "change_pct"])
         if name:
             rows.append({"name": str(name), "change_pct": change})
     return rows
@@ -200,8 +207,9 @@ def normalize_sectors(payload):
 
 def derive_top_stocks(prices):
     valid = [x for x in prices if x.get("symbol") and x.get("ltp") is not None]
-    gainers = sorted([x for x in valid if x.get("change_pct") is not None], key=lambda x: x["change_pct"], reverse=True)[:10]
-    losers = sorted([x for x in valid if x.get("change_pct") is not None], key=lambda x: x["change_pct"])[:10]
+    by_change = [x for x in valid if x.get("change_pct") is not None]
+    gainers = sorted(by_change, key=lambda x: x["change_pct"], reverse=True)[:10]
+    losers = sorted(by_change, key=lambda x: x["change_pct"])[:10]
     turnover = sorted([x for x in valid if x.get("turnover") is not None], key=lambda x: x["turnover"], reverse=True)[:10]
     return {"gainers": gainers, "losers": losers, "turnover": turnover}
 
@@ -209,13 +217,10 @@ def derive_top_stocks(prices):
 def main():
     now = datetime.now(timezone.utc).astimezone()
 
-    # Core market data: Parse first. Sector/status data stays on YONEPSE because
-    # the selected Parse API does not expose those endpoints.
     indices, indices_source = fetch_with_fallback("indices")
     summary, summary_source = fetch_with_fallback("summary")
-    prices, prices_source = fetch_with_fallback("prices", fallback=False)
+    prices, prices_source = fetch_prices_with_fallback()
 
-    # Parse has no sector endpoint in this API, so use YONEPSE only for this panel.
     try:
         sectors_raw = yonepse_get("sectors")
         sectors_source = "YONEPSE fallback (sector endpoint)"
@@ -243,7 +248,6 @@ def main():
     if turnover is None:
         turnover = sum(x["turnover"] for x in price_rows if x.get("turnover") is not None)
 
-    # Parse's today-prices endpoint is the source of truth for breadth.
     breadth_up = sum(1 for x in price_rows if (x.get("change_pct") or 0) > 0)
     breadth_down = sum(1 for x in price_rows if (x.get("change_pct") or 0) < 0)
     breadth_flat = sum(1 for x in price_rows if (x.get("change_pct") or 0) == 0)
@@ -267,8 +271,6 @@ def main():
         "low": index["low"],
     }
 
-    # Keep the existing dashboard schema intact while making live market data
-    # available for future screener/BI panels.
     latest["market_data"] = {
         "prices": price_rows,
         "top": derived,
@@ -303,7 +305,6 @@ def main():
         "note": "No market price is invented. Parse is primary for core market data; YONEPSE is used per endpoint when Parse data is unavailable."
     }
 
-    # Archive only the fetched payloads actually used by the pipeline.
     stamp = now.strftime("%Y-%m-%dT%H-%M-%S%z")
     archive = ARCHIVE_DIR / f"{stamp}.json"
     with archive.open("w", encoding="utf-8") as f:
