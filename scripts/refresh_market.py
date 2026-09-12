@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -98,7 +99,12 @@ def as_list(payload):
 
 
 def norm_key(value):
-    return str(value).lower().replace("_", "").replace("-", "").replace(" ", "")
+    # Strips everything except letters/digits so keys like "Total Turnover Rs:"
+    # and "total_turnover" normalize to the same "totalturnoverrs" / "totalturnover"
+    # form. The previous version only stripped "_", "-", " " and left the
+    # trailing ":" in place, which silently broke every YONEPSE summary lookup
+    # (e.g. "Total Turnover Rs:") and made turnover fall back to 0.
+    return re.sub(r"[^a-z0-9]", "", str(value).lower())
 
 
 def find_value(obj, keys):
@@ -244,13 +250,32 @@ def main():
     derived = derive_top_stocks(price_rows)
     sectors = normalize_sectors(sectors_raw) if sectors_raw is not None else []
 
-    turnover = metric(summary_metrics, "totalTurnover", "turnover", "total_turnover", "turnoverValue")
-    if turnover is None:
+    turnover = metric(
+        summary_metrics,
+        "totalTurnover",
+        "turnover",
+        "total_turnover",
+        "turnoverValue",
+        "totalTurnoverRs",  # matches YONEPSE/Parse's "Total Turnover Rs:" after norm_key
+    )
+    if turnover is None and price_rows:
         turnover = sum(x["turnover"] for x in price_rows if x.get("turnover") is not None)
 
-    breadth_up = sum(1 for x in price_rows if (x.get("change_pct") or 0) > 0)
-    breadth_down = sum(1 for x in price_rows if (x.get("change_pct") or 0) < 0)
-    breadth_flat = sum(1 for x in price_rows if (x.get("change_pct") or 0) == 0)
+    # Breadth is only meaningful when computed over the FULL price list (Parse's
+    # get_today_prices, ~250-300 scrips). The YONEPSE fallback only returns a
+    # top-stocks sample (~20 scrips), so breadth from that sample is not a real
+    # market breadth figure and must not be presented as one. Previously this
+    # silently produced 0/0/0 whenever price_rows was empty or partial, which
+    # looked like a real (flat) reading instead of missing/unreliable data.
+    FULL_SAMPLE_THRESHOLD = 100
+    breadth_sample_size = len(price_rows)
+    breadth_is_full_sample = prices_source == "Parse NEPSE API" and breadth_sample_size >= FULL_SAMPLE_THRESHOLD
+    if price_rows:
+        breadth_up = sum(1 for x in price_rows if (x.get("change_pct") or 0) > 0)
+        breadth_down = sum(1 for x in price_rows if (x.get("change_pct") or 0) < 0)
+        breadth_flat = sum(1 for x in price_rows if (x.get("change_pct") or 0) == 0)
+    else:
+        breadth_up = breadth_down = breadth_flat = None
 
     source_names = [indices_source, summary_source, prices_source]
     if sectors:
@@ -262,7 +287,13 @@ def main():
         "nepse": index["nepse"],
         "change_pct": index["change_pct"],
         "turnover": turnover,
-        "breadth": {"up": breadth_up, "down": breadth_down, "flat": breadth_flat},
+        "breadth": {
+            "up": breadth_up,
+            "down": breadth_down,
+            "flat": breadth_flat,
+            "sample_size": breadth_sample_size,
+            "sample_type": "full" if breadth_is_full_sample else "partial",
+        },
         "source": " + ".join(dict.fromkeys(source_names)),
         "source_urls": [PARSE_ENDPOINTS["indices"], PARSE_ENDPOINTS["summary"], PARSE_ENDPOINTS["prices"]],
         "as_of": now.isoformat(),
