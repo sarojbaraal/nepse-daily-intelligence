@@ -1,0 +1,110 @@
+diff --git a/dashboard/assets/js/app.js b/dashboard/assets/js/app.js
+index 0c69d03..5e8db5b 100644
+--- a/dashboard/assets/js/app.js
++++ b/dashboard/assets/js/app.js
+@@ -1,6 +1,8 @@
+ const $=s=>document.querySelector(s);const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ async function load(){try{const r=await fetch('./data/latest.json',{cache:'no-store'});if(!r.ok)throw new Error('data unavailable');const d=await r.json();render(d)}catch(e){$('#updated').textContent='Data file unavailable';document.body.classList.add('data-error')}}
+-function render(d){$('#updated').textContent=d.updated_label||'Latest available snapshot';const m=d.market||{};$('#index').textContent=m.nepse??'—';$('#change').textContent=m.change_pct!=null?`${m.change_pct>0?'+':''}${m.change_pct}%`:'—';$('#turnover').textContent=m.turnover??'—';$('#breadth').textContent=m.breadth??'—';$('#marketNote').textContent=m.note||'दैनिक briefing बाट तथ्य आएपछि यो panel स्वतः update हुनेछ।';
++function fmtTurnover(v){const n=Number(v);if(v==null||!isFinite(n)||n<=0)return'—';if(n>=1e9)return`Rs ${(n/1e9).toFixed(2)}bn`;if(n>=1e7)return`Rs ${(n/1e7).toFixed(2)}cr`;return`Rs ${Math.round(n).toLocaleString()}`}
++function fmtBreadth(b){if(!b||b.up==null||b.down==null)return'—';const partial=b.sample_type==='partial';return`${b.up}▲ / ${b.down}▼${b.flat?` / ${b.flat}=`:''}${partial?' *':''}`}
++function render(d){$('#updated').textContent=d.updated_label||'Latest available snapshot';const m=d.market||{};$('#index').textContent=m.nepse??'—';$('#change').textContent=m.change_pct!=null?`${m.change_pct>0?'+':''}${m.change_pct}%`:'—';$('#turnover').textContent=fmtTurnover(m.turnover);const breadth=m.breadth||{};$('#breadth').textContent=fmtBreadth(breadth);const breadthEl=$('#breadth');if(breadthEl)breadthEl.title=breadth.sample_type==='partial'?`Partial sample (${breadth.sample_size??0} scrips) — fallback source, not full-market breadth`:'';$('#marketNote').textContent=m.note||'दैनिक briefing बाट तथ्य आएपछि यो panel स्वतः update हुनेछ।';
+ const sectors=d.sectors||[];$('#sectors').innerHTML=sectors.length?sectors.map(x=>`<div class="heat"><strong>${esc(x.name)}</strong><small>${x.change_pct>0?'+':''}${esc(x.change_pct)}%</small></div>`).join(''):'<div class="empty">Sector snapshot उपलब्ध छैन।</div>';
+ const setups=d.setups||[];$('.setups').innerHTML=setups.length?setups.map(x=>`<article class="setup"><div class="setuptop"><span class="symbol">${esc(x.symbol)}</span><span class="badge">${esc(x.bias||'WATCH')}</span></div><div class="muted">${esc(x.setup||'Setup thesis pending')}</div><div class="levels"><div class="level"><span class="label">Entry</span><b>${esc(x.entry||'—')}</b></div><div class="level"><span class="label">Target</span><b>${esc(x.target||'—')}</b></div><div class="level"><span class="label">Invalidation</span><b>${esc(x.invalidation||'—')}</b></div></div><div class="progress"><i style="--w:${Math.min(100,Math.max(0,Number(x.confidence)||0))}%"></i></div><div class="muted">Evidence strength: ${esc(x.confidence??'—')} / 100</div></article>`).join(''):'<div class="empty">आजका verified setups यहाँ देखिनेछन्।</div>';
+ const s=d.scenarios||{};$('#scenarios').innerHTML=[['Base',s.base],['Bull',s.bull],['Bear',s.bear]].map(([k,v])=>`<div class="row"><b>${k}</b><div class="bar"><i style="--w:${Math.min(100,Math.max(0,Number(v?.probability)||0))}%"></i></div><span>${esc(v?.probability??'—')}%</span></div>`).join('');$('#scenarioNote').textContent=s.note||'Probability is scenario confidence, not guaranteed outcome.';
+diff --git a/data/schema.md b/data/schema.md
+index 52577de..e7f2c43 100644
+--- a/data/schema.md
++++ b/data/schema.md
+@@ -8,7 +8,7 @@
+ - `market.nepse`: numeric NEPSE index
+ - `market.change_pct`: daily percentage change
+ - `market.turnover`: formatted turnover value
+-- `market.breadth`: advancers/decliners summary
++- `market.breadth`: `{up, down, flat, sample_size, sample_type}`. `up`/`down`/`flat` are `null` when no price sample was available — never default to `0`, since `0` implies a real flat/no-movers reading. `sample_type` is `"full"` only when computed from the complete Parse price list (~250-300 scrips); `"partial"` means it came from a fallback top-stocks sample (~20 scrips) and must be labeled as such in the UI, not presented as full-market breadth.
+ - `market.note`: concise market interpretation
+ - `sectors[]`: `{name, change_pct}`
+ - `setups[]`: `{symbol, bias, setup, entry, target, invalidation, confidence}`
+@@ -23,3 +23,4 @@
+ 3. Confidence is evidence strength, not guaranteed profit probability.
+ 4. Every active trade setup needs an invalidation condition.
+ 5. Archived daily briefings remain immutable; corrections should be explicit.
++6. `market.turnover` and `market.breadth` are `null`/absent when unknown, never `0`. A `0` in either field is a real market reading, not a "data missing" placeholder — the pipeline and the dashboard must not conflate the two.
+diff --git a/scripts/refresh_market.py b/scripts/refresh_market.py
+index 06afc20..8a262cf 100644
+--- a/scripts/refresh_market.py
++++ b/scripts/refresh_market.py
+@@ -1,5 +1,6 @@
+ import json
+ import os
++import re
+ from datetime import datetime, timezone
+ from pathlib import Path
+ 
+@@ -98,7 +99,12 @@ def as_list(payload):
+ 
+ 
+ def norm_key(value):
+-    return str(value).lower().replace("_", "").replace("-", "").replace(" ", "")
++    # Strips everything except letters/digits so keys like "Total Turnover Rs:"
++    # and "total_turnover" normalize to the same "totalturnoverrs" / "totalturnover"
++    # form. The previous version only stripped "_", "-", " " and left the
++    # trailing ":" in place, which silently broke every YONEPSE summary lookup
++    # (e.g. "Total Turnover Rs:") and made turnover fall back to 0.
++    return re.sub(r"[^a-z0-9]", "", str(value).lower())
+ 
+ 
+ def find_value(obj, keys):
+@@ -244,13 +250,32 @@ def main():
+     derived = derive_top_stocks(price_rows)
+     sectors = normalize_sectors(sectors_raw) if sectors_raw is not None else []
+ 
+-    turnover = metric(summary_metrics, "totalTurnover", "turnover", "total_turnover", "turnoverValue")
+-    if turnover is None:
++    turnover = metric(
++        summary_metrics,
++        "totalTurnover",
++        "turnover",
++        "total_turnover",
++        "turnoverValue",
++        "totalTurnoverRs",  # matches YONEPSE/Parse's "Total Turnover Rs:" after norm_key
++    )
++    if turnover is None and price_rows:
+         turnover = sum(x["turnover"] for x in price_rows if x.get("turnover") is not None)
+ 
+-    breadth_up = sum(1 for x in price_rows if (x.get("change_pct") or 0) > 0)
+-    breadth_down = sum(1 for x in price_rows if (x.get("change_pct") or 0) < 0)
+-    breadth_flat = sum(1 for x in price_rows if (x.get("change_pct") or 0) == 0)
++    # Breadth is only meaningful when computed over the FULL price list (Parse's
++    # get_today_prices, ~250-300 scrips). The YONEPSE fallback only returns a
++    # top-stocks sample (~20 scrips), so breadth from that sample is not a real
++    # market breadth figure and must not be presented as one. Previously this
++    # silently produced 0/0/0 whenever price_rows was empty or partial, which
++    # looked like a real (flat) reading instead of missing/unreliable data.
++    FULL_SAMPLE_THRESHOLD = 100
++    breadth_sample_size = len(price_rows)
++    breadth_is_full_sample = prices_source == "Parse NEPSE API" and breadth_sample_size >= FULL_SAMPLE_THRESHOLD
++    if price_rows:
++        breadth_up = sum(1 for x in price_rows if (x.get("change_pct") or 0) > 0)
++        breadth_down = sum(1 for x in price_rows if (x.get("change_pct") or 0) < 0)
++        breadth_flat = sum(1 for x in price_rows if (x.get("change_pct") or 0) == 0)
++    else:
++        breadth_up = breadth_down = breadth_flat = None
+ 
+     source_names = [indices_source, summary_source, prices_source]
+     if sectors:
+@@ -262,7 +287,13 @@ def main():
+         "nepse": index["nepse"],
+         "change_pct": index["change_pct"],
+         "turnover": turnover,
+-        "breadth": {"up": breadth_up, "down": breadth_down, "flat": breadth_flat},
++        "breadth": {
++            "up": breadth_up,
++            "down": breadth_down,
++            "flat": breadth_flat,
++            "sample_size": breadth_sample_size,
++            "sample_type": "full" if breadth_is_full_sample else "partial",
++        },
+         "source": " + ".join(dict.fromkeys(source_names)),
+         "source_urls": [PARSE_ENDPOINTS["indices"], PARSE_ENDPOINTS["summary"], PARSE_ENDPOINTS["prices"]],
+         "as_of": now.isoformat(),
